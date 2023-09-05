@@ -121,3 +121,131 @@ func TestShiftWhiteSpaceRight(t *testing.T) {
 		}
 	}
 }
+
+func TestNewline(t *testing.T) {
+	tests := map[string]bool{
+		"\n": true,
+		"\a": false,
+		"\r": true,
+	}
+
+	for tc := range tests {
+		r := []rune(tc)
+		if b := Newline(r[0]); b != tests[tc] {
+			t.Fatalf("Expected character [%v][%v] to newline [%t] but got [%t]", tc, r[0], tests[tc], b)
+		}
+	}
+}
+
+func TestLeastWhitespaceIndex(t *testing.T) {
+	tests := map[string][]int{
+		" A  test  to  make  sure   the  right  position  is  chosen": {
+			3, 10,
+		},
+		"   Another test to make sure it doesn't choose the      zero 0:2 index": {
+			10, 16,
+		},
+		"\tAnother test \n\n    hur de\tdurrr\n  ": {
+			8, 24,
+		},
+		" a ": {
+			-1, -1,
+		},
+		" a b": {
+			2, 3,
+		},
+		" a   ": {
+			-1, -1,
+		},
+		"\n\t\t\a": {
+			-1, -1,
+		},
+		" a \n \r\n  \n \t \t": {
+			-1, -1,
+		},
+		" a\n\t \r\tb c": {
+			8, 9,
+			// TODO: this test case indicates a problem with unbalanced growth
+			// it will always pick between b and c
+		},
+		"a \nb c": {
+			4, 5,
+			// TODO: this test case indicates a problem with unbalanced growth
+			// it will always pick between b and c
+		},
+		"A  test\nwith  more\r\ncontrol  characters  in  compromising  positions": {
+			2, 14,
+		},
+		" A  Test\nwith  more\r\ncontrol  characters again": {
+			40, 3,
+		},
+		"A   tricky\n string test": {
+			18, 19,
+		},
+		"A  tricky  test  with\n \n \ncontrol characters  in  potentially  breaking  positions": {
+			33, 2,
+		},
+		"Another   tricky   test \n \n \nwhere  control  characters  mess  with  things": {
+			35, 45,
+		},
+	}
+
+	/*
+		I am testing with a lot of control characters for stability despite the fact
+		that I will likely have processed & stripped them already when using
+		LeastWhitespaceIndex to do final justification/formatting
+
+		I am torn on whether to place the index before or after control characters
+		or treat them like a whitespace
+	*/
+
+	for tc := range tests {
+		rs := []rune(tc)
+		d := LeastWhitespaceIndex(rs)
+		if d != tests[tc][0] {
+			t.Fatalf("Expected string [%s] to have least whitespace at index [%d] but function returned [%d]", tc, tests[tc][0], d)
+		}
+
+		if d == -1 {
+			continue
+		}
+
+		t.Log(string(rs))
+		// find runner up
+		rs = append(rs[:d+1], rs[d:]...)
+		t.Log(string(rs))
+		if d2 := LeastWhitespaceIndex(rs); d2 != tests[tc][1] {
+			t.Fatalf("Runner up expected [%v] to produce index [%d] but got [%d]  (testmap: %d:%d)", string(rs), tests[tc][1], d2, tests[tc][0], tests[tc][1])
+		}
+	}
+
+}
+
+func TestNormalize(t *testing.T) {
+	tests := map[string][]rune{
+		"    Test something here": []rune("Test   something   here"),
+		"   Test something here":  []rune("Test   something  here"),
+		"     Another   tricky   test \n \n \nwhere  control  characters  mess  with  things": []rune("Another   tricky   test \n \n \nwhere   control   characters   mess   with   things"),
+		"   a\n\t \r\tb c": []rune("a\n\t \r\tb    c"), // not great but expected
+	}
+
+	for tc := range tests {
+		rs := []rune(tc)
+		width := len(rs)
+		rs = Normalize(rs)
+
+		t.Logf("Original string [w: %d][%s]", width, tc)
+		t.Logf("New String      [w: %d][%s]", len(rs), string(rs))
+		for i := 0; i < len(tests[tc]); i++ {
+			if rs[i] != tests[tc][i] {
+				t.Logf("Expected: [%v]\nReceived: [%v]\n", []rune(tests[tc]), rs)
+				t.Fatalf("Expected normalized string to appear like [w: %d][%s]\nbut got [w: %d][%s]", len(tests[tc]), string(tests[tc]), len(rs), string(rs))
+			}
+		}
+
+		//		if reflect.DeepEqual(rs, tests[tc]) {
+		//			t.Logf("Expected: [%v]\nReceived: [%v]\n", []rune(tests[tc]), rs)
+		//			t.Fatalf("Expected normalized string to appear like [w: %d][%s]\nbut got [w: %d][%s]", len(tests[tc]), string(tests[tc]), len(rs), string(rs))
+		//		}
+	}
+}
