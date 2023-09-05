@@ -1,3 +1,8 @@
+/*
+Charles <asciifaceman> Corbett 2023
+
+MIT License
+*/
 package rslice
 
 import (
