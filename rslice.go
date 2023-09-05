@@ -207,6 +207,17 @@ func LeastWhitespaceIndex(slice []rune) int {
 	return idx - 1
 }
 
+// ShiftWhitespaceToOutside takes any excess whitespace and shifts
+// it to the exterior of the outer most non whitespace characters
+// as well as normalizing the amount of whitespace on either side
+// of the outside
+//
+// NOT IMPLEMENTED
+func ShiftWhitespaceToOutside(slice []rune) []rune {
+	// TODO: NOT IMPLEMENTED
+	return nil
+}
+
 /*
 NormalizeWhitespace takes the left and right whitespace of the given
 rune slice and spreads it across the interior whitespace of the rune

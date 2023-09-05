@@ -38,6 +38,8 @@ func TestWords(t *testing.T) {
 		" a c g y 34           35": 6,
 		" abc def  _   feff  ":     4,
 		"\n f23 \n \t":             1,
+		"क्षि กำ 각":                3,
+		"😀 😂 😠":                    3,
 	}
 
 	for tc := range tests {
@@ -56,6 +58,8 @@ func TestShiftLeft(t *testing.T) {
 		"     ":     []rune("     "),
 		"ABCDEF":    []rune("BCDEFA"),
 		" gh%Y^uio": []rune("gh%Y^uio "),
+		"ि क्षि กำ": []rune(" क्षि กำि"),
+		"😀😂😠":       []rune("😂😠😀"),
 	}
 
 	for tc := range tests {
@@ -77,6 +81,8 @@ func TestShiftRight(t *testing.T) {
 		"     ":     []rune("     "),
 		"ABCDEF":    []rune("FABCDE"),
 		" gh%Y^uio": []rune("o gh%Y^ui"),
+		"😀😂😠":       []rune("😠😀😂"),
+		// "ि क्षि กำ": []rune("กำि क्षि "), // This needs to pass for grapheme complexity
 	}
 
 	for tc := range tests {
