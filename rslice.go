@@ -124,14 +124,23 @@ func Newline(r rune) bool {
 }
 
 // TrimExcessWhitespace will remove any occurance of whitespace greater
-// than one index.
+// than one count
 func TrimExcessWhitespace(slice []rune) []rune {
 	count := 0
-	for _, r := range slice {
+	for i, r := range slice {
 		if unicode.IsSpace(r) {
 			count++
 		} else {
 			count = 0
+		}
+
+		if count > 1 {
+			if i == 1 {
+				slice = slice[1:]
+			} else {
+				slice = append(slice[:i-1], slice[i:]...)
+			}
+			return TrimExcessWhitespace(slice)
 		}
 
 	}
@@ -162,9 +171,6 @@ func LeastWhitespaceIndex(slice []rune) int {
 
 	subcount := count
 	for i, r := range slice {
-		if i == len(slice) {
-			break
-		}
 		if unicode.IsControl(r) {
 			// ignore any new whitespaces until the
 			// next non-whitespace character
@@ -260,6 +266,8 @@ func Normalize(slice []rune) []rune {
 	if unicode.IsSpace(slice[0]) {
 		d := LeastWhitespaceIndex(slice)
 		if d == -1 {
+			//  need to find a test condition that will
+			// cause a -1 maybe after deep iteration?
 			return slice
 		}
 		fmt.Println(d)

@@ -137,10 +137,28 @@ func TestNewline(t *testing.T) {
 	}
 }
 
+func TestTrimExcessWhitespace(t *testing.T) {
+	tests := map[string][]rune{
+		"This  string  has  excess  whitespace": []rune("This string has excess whitespace"),
+		"   This string":                        []rune(" This string"),
+	}
+
+	for tc := range tests {
+		new := TrimExcessWhitespace([]rune(tc))
+		if !reflect.DeepEqual(new, tests[tc]) {
+			t.Fatalf("derp")
+		}
+
+	}
+}
+
 func TestLeastWhitespaceIndex(t *testing.T) {
 	tests := map[string][]int{
 		" A  test  to  make  sure   the  right  position  is  chosen": {
 			3, 10,
+		},
+		"    ": {
+			-1, -1,
 		},
 		"   Another test to make sure it doesn't choose the      zero 0:2 index": {
 			10, 16,
@@ -221,10 +239,14 @@ func TestLeastWhitespaceIndex(t *testing.T) {
 
 }
 
-func TestNormalize(t *testing.T) {
+func TestNormalizeWhitespace(t *testing.T) {
 	tests := map[string][]rune{
-		"    Test something here": []rune("Test   something   here"),
-		"   Test something here":  []rune("Test   something  here"),
+		"":                            []rune(""),
+		"     ":                       []rune("     "),
+		"word":                        []rune("word"),
+		"    Test something here":     []rune("Test   something   here"),
+		"   Test something here":      []rune("Test   something  here"),
+		"    Test Something Here    ": []rune("Test     Something     Here"),
 		"     Another   tricky   test \n \n \nwhere  control  characters  mess  with  things": []rune("Another   tricky   test \n \n \nwhere   control   characters   mess   with   things"),
 		"   a\n\t \r\tb c": []rune("a\n\t \r\tb    c"), // not great but expected
 	}
@@ -232,7 +254,7 @@ func TestNormalize(t *testing.T) {
 	for tc := range tests {
 		rs := []rune(tc)
 		width := len(rs)
-		rs = Normalize(rs)
+		rs = NormalizeWhitespace(rs)
 
 		t.Logf("Original string [w: %d][%s]", width, tc)
 		t.Logf("New String      [w: %d][%s]", len(rs), string(rs))

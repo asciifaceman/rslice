@@ -23,3 +23,5 @@ s = ShiftLeft(s)
 > "BCDEFA"
 
 ```
+
+See the library's [tests](./rslice_test.go) for extensive example usages
